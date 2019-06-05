@@ -2,6 +2,7 @@ import scrapy
 from scrapy import Spider
 from scrapy.selector import Selector
 from ..items import FrisbeeItem
+from ..items import TeamListItem
 
 class FrisbeeSpider(scrapy.Spider):
     name = 'tweets'
@@ -16,8 +17,34 @@ class FrisbeeSpider(scrapy.Spider):
 
         for tourney in tournaments:
             item = FrisbeeItem()
-            item['tournament_name'] = tourney.xpath('./text()').extract()
-            item['tournament_url'] = tourney.xpath('./@href').extract()
+            item['tournament_name'] = tourney.xpath('./text()').extract()[0]
+            item['tournament_url'] = tourney.xpath('./@href').extract()[0]
 
-            yield item
+            tournament_schedule = item['tournament_url'] + '/schedule/Men/CollegeMen/'
+
+            item['tournament_teams'] = scrapy.Request(url=tournament_schedule, callback=self.parse_schedule)
+
+
+            yield scrapy.Request(url=tournament_schedule, callback=self.parse_schedule, meta={'item' : item})
+
+    def parse_schedule(self, response):
+        item = response.meta.get('item')
+        tourney_teams = Selector(response).xpath('//div[@class = "pool"]//td/a')
+
+        teams = []
+
+        for team in tourney_teams:
+            teams.append(team.xpath('./text()').extract())
+
+        item['tournament_teams'] = teams
+
+        yield item
+
+
+
+
+
+
+
+
 
