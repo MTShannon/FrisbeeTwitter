@@ -22,7 +22,11 @@ class FrisbeeItem(scrapy.Item):
 class TeamListItem(scrapy.Item):
     teams = Field()
 
+<<<<<<< HEAD
+class Team(scrapy.Item):
+=======
 class team(scrapy.Item):
+>>>>>>> master
     team_name = Field()
     team_twitter = Field()
 
